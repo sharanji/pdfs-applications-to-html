@@ -2,9 +2,70 @@ import logging
 
 from redis.exceptions import ConnectionError as RedisConnectionError
 from .redis_exceptions import RedisDataTypeError, RedisResponseError
-
-from plutus_libs.external_vendors.redis.redis import RedisSyncClient
+import redis
 from app_redis.constants import redis_config
+
+class RedisSyncClient:
+    """
+    RedisSyncClient is a thread-safe singleton class that manages Redis connections
+    using a connection pool. Each unique (host, port) combination results in a single
+    instance of the client.
+
+    Parameters:
+    - config (dict): Configuration dictionary to set up the Redis connection pool.
+
+    Required keys in config:
+    - host (str): The Redis server host.
+    - port (int): The Redis server port.
+    - password (str): The password for Redis authentication.
+
+    Example:
+    config = {
+        "host": "localhost",
+        "port": 6379,
+        "password": "yourpassword",
+        "decode_responses": True,
+        "socket_connect_timeout": 5,
+        "socket_timeout": 10,
+        "health_check_interval": 60
+    }
+
+    Usage:
+    redis_client = RedisSyncClient(config).get_client()
+    """
+    _instances = {}
+   
+
+    def __new__(cls, config: dict):
+
+
+        # Unique key for each instance
+        host = config.get("host")
+        port = config.get("port")
+        instance_key = (host, port)
+        if instance_key not in cls._instances:
+            singleton_instance = super(RedisSyncClient, cls).__new__(cls)
+            singleton_instance.initialize(config)
+            cls._instances[instance_key] = singleton_instance
+
+        return cls._instances[instance_key]
+
+    def initialize(self, config: dict):
+        """
+        Initialize Redis connection based on the configuration.
+        """
+        self.pool = redis.ConnectionPool(**config)
+
+    def get_client(self):
+        """
+        Get the synchronous Redis client.
+        """
+        if not hasattr(self, 'client'): 
+            self.client = redis.Redis(connection_pool=self.pool)
+
+        return self.client
+
+
 
 def setup_redis_client():
     """
