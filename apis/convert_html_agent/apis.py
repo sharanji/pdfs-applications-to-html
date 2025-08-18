@@ -9,15 +9,14 @@ from flask import Flask, request
 from convert_html_agent.api_helpers import create_template_with_sections
 import time
 import logging
+from cachetools import TTLCache
 
+cache = TTLCache(maxsize=100, ttl=20)
 
 def upload_template_api() -> dict:
     uploaded_file_bytes = request.get_json()['file']
-
-    redis_client: RedisClient = RedisClient()
-    redis_hash: RedisHash = redis_client('hash')
     request_id = generate_request_id()
-    redis_hash.set(request_id, {'encrypted_file': uploaded_file_bytes}, secs=20)
+    cache[request_id] = uploaded_file_bytes
 
     return {'message': 'uploaded successfully', 'request_id': request_id}
 
@@ -26,8 +25,7 @@ def upload_template_api() -> dict:
 def upload_template_sections_api(id):
     """returns total sections"""
 
-    redis_hash: RedisHash = RedisClient()('hash')
-    base_64_file = redis_hash.get_field(id, 'encrypted_file')
+    base_64_file = cache.get(id)
     total_sections = get_total_sections_ai(base_64_file)
 
     yield total_sections
