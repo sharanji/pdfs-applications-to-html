@@ -1,3 +1,5 @@
+import json
+from sqlalchemy import JSON
 from convert_html_agent.models import TemplateSections, ConvertedTemplates
 from common.reponse_utils import event_stream_wrapper
 from common.utils import generate_request_id
@@ -10,6 +12,7 @@ from convert_html_agent.api_helpers import create_template_with_sections
 import time
 import logging
 from cachetools import TTLCache
+import requests
 
 cache = TTLCache(maxsize=100, ttl=20)
 
@@ -94,54 +97,13 @@ def template_view_helper(request_id, session):
 
 
 def test_listing():
-    return [
-        {'LIFNR': '0000003003', 'NAME1': 'SV Vendor new'},
-        {'LIFNR': '0000200000', 'NAME1': 'Vendor 1 bp1'},
-        {'LIFNR': '1000000002', 'NAME1': 'SVR ime Vendor'},
-        {'LIFNR': '0000003005', 'NAME1': 'Sanofi Ridgefield'},
-        {'LIFNR': '0000100000', 'NAME1': 'Bio Chemicals'},
-        {'LIFNR': '0000003004', 'NAME1': 'Sanofi Bio chemicals'},
-        {'LIFNR': '0000003002', 'NAME1': 'Sanofi Bio chemicals'},
-        {'LIFNR': '0000100001', 'NAME1': 'bio'},
-        {'LIFNR': '0000100002', 'NAME1': 'San Northborough'},
-        {'LIFNR': '0000003006', 'NAME1': 'Sanofi Ridgefield'},
-        {'LIFNR': '0000003007', 'NAME1': 'SV New Vendor'},
-        {'LIFNR': '0000050000', 'NAME1': 'Vendor Abhi'},
-        {'LIFNR': '0000002001', 'NAME1': 'IBM'},
-        {'LIFNR': '0000007502', 'NAME1': 'horizon gen1'},
-        {'LIFNR': '0000007503', 'NAME1': 'horizon vendor pur'},
-        {'LIFNR': '0000007002', 'NAME1': 'Pepsi Vendor Acc'},
-        {'LIFNR': 'MAY_2025', 'NAME1': 'May_2025'},
-        {'LIFNR': '1000000005', 'NAME1': 'TEST3'},
-        {'LIFNR': '0000007506', 'NAME1': 'horizon customer bp1'},
-        {'LIFNR': '0000002401', 'NAME1': 'Ashok Ltd.'},
-        {'LIFNR': '0000002402', 'NAME1': 'Ceat'},
-        {'LIFNR': '0000007000', 'NAME1': 'Pepsi'},
-        {'LIFNR': '0000007005', 'NAME1': 'Pepsi BP 4'},
-        {'LIFNR': '0000007006', 'NAME1': 'Pepsi Cola BP 1'},
-        {'LIFNR': '0000007507', 'NAME1': 'test 1'},
-        {'LIFNR': '0000007007', 'NAME1': 'Pepsi Cola BP 2'},
-        {'LIFNR': '0000010003', 'NAME1': 'lavender bp ven1'},
-        {'LIFNR': '0000010004', 'NAME1': 'lavender bp ven2'},
-        {'LIFNR': '0000010005', 'NAME1': 'lavender bp ven3'},
-        {'LIFNR': '0000010006', 'NAME1': 'lavender bp ven4'},
-        {'LIFNR': '0000010007', 'NAME1': 'lavender bp vc1'},
-        {'LIFNR': '0000010008', 'NAME1': 'lavender bp vc2'},
-        {'LIFNR': '0000010009', 'NAME1': 'lavender bp vp1'},
-        {'LIFNR': '0000010010', 'NAME1': 'lavender bp vp2'},
-        {'LIFNR': '0000002201', 'NAME1': 'Anchor'},
-        {'LIFNR': '0000002700', 'NAME1': 'test'},
-        {'LIFNR': '0000007009', 'NAME1': 'Pepsi Cola BP 3'},
-        {'LIFNR': '0000003014', 'NAME1': "DECCAN COOPER'S"},
-        {'LIFNR': '0000003008', 'NAME1': 'SV Food Supplies'},
-        {'LIFNR': '0000003009', 'NAME1': 'SS Supplier'},
-        {'LIFNR': '0100700001', 'NAME1': 'MR.Vendor'},
-        {'LIFNR': '0000002214', 'NAME1': 'sprite'},
-        {'LIFNR': '0000003010', 'NAME1': 'RFQ Ven 1'},
-        {'LIFNR': '0000003011', 'NAME1': 'RFQ Ven 2'},
-        {'LIFNR': '0000007001', 'NAME1': 'HP'},
-        {'LIFNR': '0100700000', 'NAME1': 'SB Vendor'},
-    ]
+    url = "http://s4hana2021.estservers.com:8701/zsupplier/supplier_detail?sap-client=500"
+    headers = {
+        'Authorization': 'Basic VlM0U01VU0VSMTI6V2VsY29tZUAxMjM=',
+        'Cookie': 'SAP_SESSIONID_MAH_500=BrDAxhB7y0tDhj3Dt9itou5_rlF9tBHwovwAFV0AFAM%3d; sap-usercontext=sap-client=500'
+    }
+    response = requests.request("GET", url, headers=headers)
+    return json.loads(response.text)
 
 
 def test_save():

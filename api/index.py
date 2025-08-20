@@ -24,11 +24,15 @@ def configure_app_routes():
 configure_app_routes()
 
 
-@app.route("/")
+@app.route("/hello")
 def hello_world():
     Base.metadata.create_all(engine)
     return "True"
 
+@app.route("/", methods=["GET"])
+def index():
+    return {"msg": "Hello from Vercel + Flask"}
+
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(debug=True)
