@@ -8,7 +8,10 @@ def event_stream_wrapper(func):
         def generate():
             for data in func(*args, **kwargs):
                 yield f"data: {json.dumps(data)}\n\n"  # SSE format
-        return Response(generate(), mimetype="text/event-stream")
+        return Response(generate(), mimetype="text/event-stream", headers={
+            'X-Content-Type-Options': 'nosniff',
+            'Content-Type': 'text/event-stream',
+        })
     return wrapper
 
 def response_wrap(func):

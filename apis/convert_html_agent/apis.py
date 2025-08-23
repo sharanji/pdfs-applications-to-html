@@ -14,7 +14,7 @@ import logging
 from cachetools import TTLCache
 import requests
 
-cache = TTLCache(maxsize=100, ttl=20)
+cache = TTLCache(maxsize=100, ttl=60)
 
 def upload_template_api() -> dict:
     uploaded_file_bytes = request.get_json()['file']
@@ -28,12 +28,16 @@ def upload_template_api() -> dict:
 def upload_template_sections_api(id):
     """returns total sections"""
 
-    base_64_file = cache.get(id)
-    total_sections = get_total_sections_ai(base_64_file)
+    # base_64_file = cache.get(id)
+    # total_sections = get_total_sections_ai(base_64_file)
+    logging.info('start')
+    for i in range(2):
+        yield {'name' : 'sharanji'}
+        # time.sleep(5)
 
-    yield total_sections
-    yield upload_and_get_sections(base_64_file, id, total_sections['total_sections'])
-    yield {'close': 'end of response'}
+    # yield total_sections
+    # yield upload_and_get_sections(base_64_file, id, total_sections['total_sections'])
+    # yield {'close': 'end of response'}
 
 
 @session_wrap
