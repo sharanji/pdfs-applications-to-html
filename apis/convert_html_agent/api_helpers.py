@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from convert_html_agent.models import ConvertedTemplates
+from .models import ConvertedTemplates, TemplateFormData
 
 
 def create_template_with_sections(
@@ -17,3 +17,18 @@ def create_template_with_sections(
     session.refresh(template)
 
     return template
+
+def template_saver_helper(formData, section_id, session: Session=None):
+
+    form_name = formData.get('auto_form_name', '').split(':')[-1]
+    template_form_data = TemplateFormData(
+        template_id=formData.get('template_id'),
+        form_data=formData,
+        name=form_name,
+        section_id=section_id,
+    )
+
+    session.add(template_form_data)
+    session.commit()
+    
+    return template_form_data.to_dict()

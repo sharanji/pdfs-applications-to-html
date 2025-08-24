@@ -1,5 +1,5 @@
 from db import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy.inspection import inspect
@@ -44,6 +44,36 @@ class TemplateSections(Base, SerializerMixin):
     order = Column(Integer, nullable=True)
 
     template = relationship("ConvertedTemplates", back_populates="sections")
+
+    def to_dict(self, include_relationships=False):
+        data = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+        if include_relationships:
+            for name, relation in inspect(self.__class__).relationships.items():
+                value = getattr(self, name)
+                if value is None:
+                    data[name] = None
+                elif relation.uselist:
+                    data[name] = [item.to_dict() for item in value]
+                else:
+                    data[name] = value.to_dict()
+        return data
+    
+
+
+class TemplateFormData(Base, SerializerMixin):
+    __tablename__ = 'Template_Form_Data'
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    template_id = Column(String(100), ForeignKey('Templates.request_id', ondelete="CASCADE"), nullable=False)
+    section_id = Column(Integer, ForeignKey('Template_Sections.id', ondelete="CASCADE"), nullable=False, default=1)
+    form_data = Column(JSON, nullable=True)
+    name = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    template = relationship("ConvertedTemplates")
+    section = relationship("TemplateSections")
 
     def to_dict(self, include_relationships=False):
         data = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}

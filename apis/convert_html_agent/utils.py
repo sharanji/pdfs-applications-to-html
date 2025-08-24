@@ -43,7 +43,7 @@ def generate_html(base64_data, section):
               Ignore vertically placed texts.
               Display page number and date at the top. Ignore 'Sheet No.' unless it's part of a section.
               If a section header is missing, group the content with the last valid section.
-              inculde a hidden input which contains the value of total sections.
+              inculde a hidden input which contains the value of total sections and form name in a hidden input field #auto_form_name.
               Output only the HTML Canvas elements. No extra text."""),
         ],
     )
@@ -87,25 +87,28 @@ def get_total_sections_ai(base64_data):
     return json.loads(content)
 
 
-def warp_html_skeleton(content:str)->str:
+def warp_html_skeleton(content:str, read_only=False)->str:
     content = content.replace('```html', '')
     content = content.replace('```', '')
+
+    submit_button = """
+        <div style="height: 50px;align-items: end; display: flex; justify-content: end;">
+            <button class="bg-primary text-white font-bold py-2 px-4 rounded mt-2" onclick="submitCurrentForm()">Submit</button>
+        </div>
+    """ if not read_only else ""
+
     return """
     <html>
         <head>
             <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> 
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+            <link href="/css/template-css.css" rel="stylesheet">
         </head>
 
         <body>
-        <style>
-            input{
-                padding : 0px 5px;
-                border: 1px solid #f3f4f6 !important;
-            }
-        </style>
         """ \
-        + content + \
-        """</body>
+        + content + submit_button + """
+        </body>
     </html>
     """
